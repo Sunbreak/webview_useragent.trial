@@ -56,6 +56,8 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   WebViewController _controller;
 
+  String originUserAgent;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -64,13 +66,20 @@ class _MyHomePageState extends State<MyHomePage> {
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
-      body: WebView(
-        javascriptMode: JavascriptMode.unrestricted,
-        onWebViewCreated: (controller) {
-          _controller = controller;
-          _loadHtmlFromAssets();
-        },
-      ),
+      body: _buildWebView(),
+    );
+  }
+
+  WebView _buildWebView() {
+    if (originUserAgent != null) _loadHtmlFromAssets();
+    return WebView(
+      javascriptMode: JavascriptMode.unrestricted,
+      userAgent: originUserAgent != null ? '$originUserAgent MyUserAgent' : null,
+      onWebViewCreated: (controller) async {
+        _controller = controller;
+        var userAgent = await controller.evaluateJavascript('navigator.userAgent');
+        setState(() => originUserAgent = userAgent);
+      },
     );
   }
 
